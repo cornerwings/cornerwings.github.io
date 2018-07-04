@@ -198,10 +198,21 @@ Even though it is required to go through the native image route in Graal, the ac
 ## Benchmarks
 >> As always take these micro benchmarks with a grain of salt and make sure to conduct a similar experiment for your application to really quantify the difference.
 
-Linked source code below has a very basic benchmark that runs 100M iterations of the following,
-* Allocate a new triple (native method)
-* Access the ```id``` field from all members of the triple and sum it to prevent dead code elimination. 
-* Free the triple (native method)
+Linked source code below has a very basic benchmark that runs 100M iterations interacting with these methods.
+{% highlight java %}
+long iterations = 100_000_000L;
+long start = System.currentTimeMillis();
+long sum = 0;
+
+for (long i = 0; i < iterations; i++) {
+    Triple triple = allocRandomTriple();
+    sum += triple.subject().getId() + triple.predicate().getId() + triple.object().getId();
+    freeTriple(triple);
+}
+
+long end = System.currentTimeMillis();
+double timeTaken = ((double) (end - start) * 1_000_000L)/iterations;
+{% endhighlight %}
 
 Here are the results,
 
@@ -211,7 +222,7 @@ Here are the results,
 | jni/unsafe      | 109.42 ns      |
 
 
-Not only code is cleaner with Graal but it is about 1.4x faster over the fastest possible JNI implementation. I am not sure how much of that is due to the native image or due to more streamlined interaction between Java and C.
+Not only code is cleaner with Graal but it is about 1.4x faster over the fastest possible JNI implementation. I am not sure how much of that is due to AOT complication or something fundamental with native method interaction.
 
 ## Source code
 All of the code mentioned in this post is available at the following repository: [graal-native-interaction][graal-native-interaction]. None of the code compiles but feel free to use the code as reference.
