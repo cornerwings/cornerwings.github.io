@@ -4,7 +4,9 @@ title:  "Interfacing with native methods on Graal"
 date:   2018-07-03 16:20:04 -0700
 ---
 
-JNI (Java Native Interface) is quite possibly the most intutive way to make foreign function calls. Just kidding, Java has quiet possibly one of the worst ways to interact with native methods. Not only are there weird conventions to follow but the language boundary interop is unbelievably cumbersome to deal with. Exchanging anything other than primitive data typically involves either reaching back to the VM via JNI (very slow) or use a serialization library like Protobuf (still slow) or directly access memory by address in Java via ```sun.misc.Unsafe``` (fast but unstable).
+JNI (Java Native Interface) is quite possibly the most intutive way to make foreign function calls. Just kidding, Java has quiet possibly one of the worst ways to interact with native methods. Graal introduces a new way to cross language boundary that is easier to maintain and allows interop with any native library.
+
+JNI APIs follow weird conventions and the language boundary interop is unbelievably cumbersome to deal with. Exchanging anything other than primitive data typically involves either reaching back to the VM via JNI (very slow) or use a serialization library like Protobuf (still slow) or directly access memory by address in Java via ```sun.misc.Unsafe``` (fast but unstable).
 
 That's why I was super excited for [Graal's polyglot][graal-polyglot] abilities which will essentially eliminate the need for JNI and introduce a safer way to cross the language boundary from Java. LLVM interoperability in [reference manual][graal-llvm-interop] gave me a lot of hope and showed how simple this can be. Then,
 
