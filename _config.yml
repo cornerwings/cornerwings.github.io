@@ -19,23 +19,12 @@ github_username:  cornerwings
 
 remote_theme: yous/whiteglass
 plugins:
-  - jekyll-archives
   - jekyll-paginate
-  - jekyll-sitemap
   - jekyll-remote-theme
 
 permalink: /:year/:month/:day/:title/
 paginate_path: /posts/:num/
 paginate: 10
-
-jekyll-archives:
-  enabled:
-    - categories
-    - tags
-  layout: category_archives
-  permalinks:
-    category: /categories/:name/
-    tag: /tags/:name/
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
