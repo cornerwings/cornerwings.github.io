@@ -1,22 +1,22 @@
 ---
 layout: post
-title:  "Interfacing with native methods on Graal"
+title:  "Interfacing with native methods on Graal VM"
 date:   2018-07-03 16:20:04 -0700
 ---
 
-Java has quite possibly one of the worst ways to interact with native methods using JNI (Java Native Interface). JNI APIs follow weird conventions and the language boundary interop is unbelievably cumbersome to deal with. Graal introduces a new way to cross language boundary that is easier to maintain and allows interop with any native library.
+Java has quite possibly one of the worst ways to interact with native methods using JNI (Java Native Interface). JNI APIs follow weird conventions and the language boundary interop is unbelievably cumbersome to deal with. Graal VM introduces a new way to cross language boundary that is easier to maintain and allows interop with any native library.
 
-Exchanging anything other than primitive data via JNI typically involves either reaching back to the VM (very slow) or use a serialization library like Protobuf (still slow) or directly access memory by address in Java via sun.misc.Unsafe (fast but unstable). That's why I was super excited for [Graal's polyglot][graal-polyglot] abilities which will essentially eliminate the need for JNI and introduce a safer way to cross the language boundary from Java. LLVM interoperability in [reference manual][graal-llvm-interop] gave me a lot of hope and showed how simple this can be.
+Exchanging anything other than primitive data via JNI typically involves either reaching back to the VM (very slow) or use a serialization library like Protobuf (still slow) or directly access memory by address in Java via sun.misc.Unsafe (fast but unstable). That's why I was super excited for [Graal VM's polyglot][graal-polyglot] abilities which will essentially eliminate the need for JNI and introduce a safer way to cross the language boundary from Java. LLVM interoperability in [reference manual][graal-llvm-interop] gave me a lot of hope and showed how simple this can be.
 
-Turns out there are still some limitations in polyglot capabilities of Graal. For Java interop with native methods it requires you to create a native image (compile the java application to executable code).
+Turns out there are still some limitations in polyglot capabilities of Graal VM. For Java interop with native methods it requires you to create a native image (compile the java application to executable code).
 
 <blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">The direct access to C data structures via interoperability is currently only supported for JavaScript, Ruby, R, or Python (see <a href="https://t.co/chX23U78kA">https://t.co/chX23U78kA</a> for an example). How to interact between Java and C/C++ when creating a native image is described here: <a href="https://t.co/HeuOIDOlOq">https://t.co/HeuOIDOlOq</a></p>&mdash; Thomas Wuerthinger (@thomaswue) <a href="https://twitter.com/thomaswue/status/992798186543702016?ref_src=twsrc%5Etfw">May 5, 2018</a></blockquote>
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
-The only problem is that native image building functionality in Graal is quite limited (as of now) and it is not always possible to build one for complex Java applications. I still wanted to see if this is indeed simpler than using JNI and if there is any performance gap between these approaches (the fastest way that I know of is to expose the address via JNI method and write wrapper classes that access memory directly using Unsafe in Java).
+The only problem is that native image building functionality in Graal VM is quite limited (as of now) and it is not always possible to build one for complex Java applications. I still wanted to see if this is indeed simpler than using JNI and if there is any performance gap between these approaches (the fastest way that I know of is to expose the address via JNI method and write wrapper classes that access memory directly using Unsafe in Java).
 
 ## Exposing C data structures
-Although not quite as neat as exposing these structs to dynamic languages like JavaScript etc., it is still quite convenient in Graal. Firstly there is no need to implement additional APIs just for the sake of language interop and you can simply integrate with your existing headers and library files. This means that it is possible to integrate with any arbitrary library provided that initial mapping of structs is done.
+Although not quite as neat as exposing these structs to dynamic languages like JavaScript etc., it is still quite convenient in Graal VM. Firstly there is no need to implement additional APIs just for the sake of language interop and you can simply integrate with your existing headers and library files. This means that it is possible to integrate with any arbitrary library provided that initial mapping of structs is done.
 
 Let's start with a simple data structure (in file ```triple.h```) and create the corresponding structure for that in Java,
 {% highlight c %}
@@ -32,7 +32,7 @@ typedef struct triple_t {
 } triple_t;
 {% endhighlight %}
 
-C struct package in Graal provides us with required functionality to achieve this. For our example, we need to use two concepts to complete the mapping,
+C struct package provides us with required functionality to achieve this. For our example, we need to use two concepts to complete the mapping,
 * [CField][graal-api-cfield] - Maps a primitive field in struct to Java.
 * [CFieldAddress][graal-api-cfield-address] - Maps a complex (or nested) struct by leveraging composition in Java.
 
@@ -83,7 +83,7 @@ Triple triple = ...;
 long subjectId = triple.subject().getId();
 {% endhighlight %}
 
-I glossed over one thing to get to mapping part but Graal requires you to enclose these struct classes in some [CContext][graal-api-ccontext]. This is used as part of native-image build to resolve the offsets correctly.
+I glossed over one thing to get to mapping part but Graal VM requires you to enclose these struct classes in some [CContext][graal-api-ccontext]. This is used as part of native-image build to resolve the offsets correctly.
 
 {% highlight java %}
 @CContext(Headers.class)
@@ -219,12 +219,12 @@ Here are the results,
 | jni/unsafe      | 109.42 ns      |
 
 
-Not only code is cleaner with Graal but it is about 1.4x faster over the fastest possible JNI implementation. I am not sure how much of that is due to AOT complication or something fundamental with native method interaction. 
+Not only code is cleaner with Graal VM but it is about 1.4x faster over the fastest possible JNI implementation. I am not sure how much of that is due to AOT complication or something fundamental with native method interaction. 
 
 ## Analysis
 At this point, you might be wondering why even bother crossing the language boundary as performance differences in modern languages are quite small. For a database it is beneficial to handle the request/responses in Java, this lets us use server frameworks like Netty or support a variety of serialization formats/charset encodings. At the same time database is all about control, you want to make sure resources are released when they are supposed to be released and query limits are enforced strictly (memory or time). Having a fast maintainable way to cross the language boundary when needed makes these type of uses cases possible.
 
-Even though it is required to go through the native image route in Graal, the actual interaction between Java and native methods is much easier/succinct compared to using JNI. With sufficient care, it could even be backward compatible as long as new members to structs are additive. I am hopeful with existing limitations of native image removed, language interop becomes straightforward and open up a new class of applicatons on Graal.
+Even though it is required to go through the native image route in Graal VM, the actual interaction between Java and native methods is much easier/succinct compared to using JNI. With sufficient care, it could even be backward compatible as long as new members to structs are additive. I am hopeful with existing limitations of native image removed, language interop becomes straightforward and open up a new class of applicatons on Graal VM.
 
 ## Source code
 All of the code mentioned in this post is available at the following repository: [graal-native-interaction][graal-native-interaction].
