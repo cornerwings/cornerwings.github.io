@@ -36,6 +36,10 @@ jobs:
           test -n "$SITE_BUCKET"
           test -n "$SITE_URL"
           test -n "$CLOUDFRONT_DISTRIBUTION_ID"
+          case "$SITE_URL" in
+            https://*) ;;
+            *) echo "SITE_URL must begin with https://" >&2; exit 1 ;;
+          esac
 
       - name: Build Jekyll site
         run: |
