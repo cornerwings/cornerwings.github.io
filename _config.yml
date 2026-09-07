@@ -14,7 +14,10 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 title: introduction to nonsense
-url: "https://cornerwings.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+# Set this to the public CloudFront/custom-domain URL before the first deploy.
+# The deployment workflow also overrides it from the SITE_URL repository variable.
+url: "https://cornerwings.github.io"
+baseurl: ""
 github_username:  cornerwings
 
 remote_theme: yous/whiteglass
@@ -27,6 +30,13 @@ paginate_path: /posts/:num/
 paginate: 10
 
 google_analytics: UA-16443706-3
+
+# Keep the generated site out of source control and prevent deployment files
+# from being copied to the S3 origin.
+destination: _site
+exclude:
+  - .github/
+  - README.md
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
