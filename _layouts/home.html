@@ -1,0 +1,32 @@
+---
+layout: default
+---
+
+{% if content != empty %}
+  <div class="intro">{{ content }}</div>
+{% endif %}
+
+<section aria-label="Posts">
+  <h1>Writing</h1>
+  <ul class="post-list">
+    {% assign posts = paginator.posts | default: site.posts %}
+    {% for post in posts %}
+      <li>
+        <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%b %-d, %Y" }}</time>
+        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+
+{% if paginator and paginator.total_pages > 1 %}
+  <nav class="pagination" aria-label="Post pages">
+    {% if paginator.previous_page %}
+      <a href="{{ paginator.previous_page_path | relative_url }}">Newer</a>
+    {% endif %}
+    <span>Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
+    {% if paginator.next_page %}
+      <a href="{{ paginator.next_page_path | relative_url }}">Older</a>
+    {% endif %}
+  </nav>
+{% endif %}

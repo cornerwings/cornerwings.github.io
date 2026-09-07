@@ -15,21 +15,18 @@
 # in the templates via {{ site.myvariable }}.
 title: introduction to nonsense
 # Set this to the public CloudFront/custom-domain URL before the first deploy.
-# The deployment workflow also overrides it from the SITE_URL repository variable.
+# The deployment workflow also overrides it from the SITE_URL repository secret.
 url: "https://cornerwings.github.io"
 baseurl: ""
 github_username:  cornerwings
 
-remote_theme: yous/whiteglass
 plugins:
+  - jekyll-feed
   - jekyll-paginate
-  - jekyll-remote-theme
 
 permalink: /:year/:month/:title/
 paginate_path: /posts/:num/
 paginate: 10
-
-google_analytics: UA-16443706-3
 
 # Keep the generated site out of source control and prevent deployment files
 # from being copied to the S3 origin.
